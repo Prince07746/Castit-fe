@@ -18,7 +18,7 @@ export class SignalingService {
   readonly events$ = new Subject<SignalingEvent>();
 
   connect(): void {
-    this.socket = io('http://localhost:3000');
+    this.socket = io('https://castit.vanitum.com');
     const forward = (type: string) =>
       this.socket.on(type, (payload: any) => this.events$.next({ type, ...payload } as any));
     ['room-created','room-joined','peer-joined','peer-left','offer','answer','ice-candidate','error']

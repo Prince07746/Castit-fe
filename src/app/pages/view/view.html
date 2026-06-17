@@ -1,0 +1,61 @@
+<div class="view-page" [class.fullscreen]="state === 'connected'">
+  <!-- Video takes full screen when connected -->
+  <video #videoEl class="stream-video" [class.visible]="state === 'connected'" autoplay playsinline muted></video>
+
+  <!-- Overlay UI shown when not connected -->
+  <div class="overlay" [class.hidden]="state === 'connected'">
+    <a routerLink="/home" class="back-link">← home</a>
+
+    <div class="center-content">
+      <div class="tv-icon">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <rect x="6" y="10" width="52" height="32" rx="4" stroke="var(--accent2)" stroke-width="2" fill="rgba(79,195,247,0.05)"/>
+          <rect x="12" y="16" width="40" height="20" rx="2" fill="rgba(79,195,247,0.05)" stroke="rgba(79,195,247,0.1)"/>
+          <path d="M22 42l-3 8h26l-3-8" stroke="var(--accent2)" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+
+      @if (state === 'idle') {
+        <h1>TV Display</h1>
+        <p class="subtitle">Open this on your TV browser, then create a room</p>
+        <button class="btn btn-primary btn-lg" (click)="createRoom()">Create Room</button>
+      }
+
+      @if (state === 'waiting') {
+        <h1>Waiting for phone</h1>
+        <p class="subtitle">Enter this code on your phone to connect</p>
+        <div class="code-display">
+          @for (char of roomCode.split(''); track $index) {
+            <span class="code-digit">{{ char }}</span>
+          }
+        </div>
+        <div class="badge badge-waiting"><div class="dot pulse"></div> Waiting...</div>
+      }
+
+      @if (state === 'connecting') {
+        <h1>Connecting...</h1>
+        <p class="subtitle">Establishing peer connection</p>
+        <div class="spinner"></div>
+      }
+
+      @if (state === 'disconnected') {
+        <h1>Disconnected</h1>
+        <p class="subtitle">The phone disconnected from this session</p>
+        <button class="btn btn-primary btn-lg" (click)="reconnect()">New Session</button>
+      }
+
+      @if (error) {
+        <p class="error-msg">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  <!-- Connected overlay controls (shown briefly, fade out) -->
+  @if (state === 'connected') {
+    <div class="connected-bar">
+      <div class="badge badge-live"><div class="dot pulse"></div> LIVE</div>
+      <span class="room-label">Room {{ roomCode }}</span>
+      <button class="btn btn-danger" (click)="reconnect()">End Session</button>
+    </div>
+  }
+</div>

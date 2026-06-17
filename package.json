@@ -1,0 +1,31 @@
+{
+  "name": "castit-frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "20.3.25",
+    "@angular/common": "20.3.25",
+    "@angular/compiler": "20.3.25",
+    "@angular/core": "20.3.25",
+    "@angular/forms": "20.3.25",
+    "@angular/platform-browser": "20.3.25",
+    "@angular/platform-browser-dynamic": "20.3.25",
+    "@angular/router": "20.3.25",
+    "rxjs": "~7.8.0",
+    "socket.io-client": "^4.7.5",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "20.3.29",
+    "@angular/cli": "20.3.29",
+    "@angular/compiler-cli": "20.3.25",
+    "typescript": "~5.8.0"
+  }
+}

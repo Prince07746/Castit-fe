@@ -1,0 +1,69 @@
+<div class="home">
+  <div class="hero">
+    <div class="logo-wrap">
+      <div class="logo-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="14" fill="rgba(224,201,127,0.1)"/>
+          <path d="M8 14h32v20H8z" rx="3" stroke="var(--accent)" stroke-width="2" fill="none"/>
+          <path d="M18 34l-2 4h16l-2-4" stroke="var(--accent)" stroke-width="2" fill="none"/>
+          <path d="M30 22a6 6 0 01-12 0" stroke="var(--accent2)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <circle cx="24" cy="22" r="2" fill="var(--accent2)"/>
+        </svg>
+      </div>
+      <h1 class="logo-text">cast<span>it</span></h1>
+    </div>
+    <p class="tagline">Share your phone screen to any TV — instant, wireless, no app required.</p>
+  </div>
+
+  <div class="cards">
+    <a routerLink="/view" class="mode-card tv-card">
+      <div class="mode-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="4" y="8" width="32" height="20" rx="3" stroke="var(--accent2)" stroke-width="2" fill="none"/>
+          <path d="M14 28l-2 4h16l-2-4" stroke="var(--accent2)" stroke-width="2" fill="none"/>
+          <rect x="9" y="12" width="22" height="12" rx="1" fill="rgba(79,195,247,0.1)" stroke="rgba(79,195,247,0.2)" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="mode-content">
+        <h2>I'm the TV</h2>
+        <p>Generate a room code and wait for a phone to connect</p>
+      </div>
+      <div class="mode-arrow">→</div>
+    </a>
+
+    <a routerLink="/cast" class="mode-card phone-card">
+      <div class="mode-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="12" y="4" width="16" height="28" rx="4" stroke="var(--accent)" stroke-width="2" fill="none"/>
+          <circle cx="20" cy="28" r="1.5" fill="var(--accent)"/>
+          <path d="M16 8h8" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="mode-content">
+        <h2>I'm the Phone</h2>
+        <p>Enter the room code shown on your TV to start casting</p>
+      </div>
+      <div class="mode-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="how-it-works">
+    <h3>How it works</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <p>Open <strong>I'm the TV</strong> on your TV's browser</p>
+      </div>
+      <div class="step-divider">→</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <p>Open <strong>I'm the Phone</strong> on your phone</p>
+      </div>
+      <div class="step-divider">→</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <p>Enter the 6-digit code and start casting</p>
+      </div>
+    </div>
+  </div>
+</div>

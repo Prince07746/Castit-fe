@@ -25,6 +25,8 @@ export class CastComponent implements OnInit, OnDestroy {
   private pc!: RTCPeerConnection;
   private stream!: MediaStream;
   private sub!: Subscription;
+  private pendingIceCandidates: RTCIceCandidateInit[] = [];
+  private pendingOffer?: RTCSessionDescriptionInit;
 
   constructor(private signaling: SignalingService) {}
 
@@ -43,10 +45,13 @@ export class CastComponent implements OnInit, OnDestroy {
           // TV is ready - we don't handle offer here, TV sends it
           break;
         case 'offer':
-          await this.handleOffer(ev.sdp);
+          this.pendingOffer = ev.sdp;
+          if (this.stream) {
+            await this.handleOffer(ev.sdp);
+          }
           break;
         case 'ice-candidate':
-          try { await this.pc?.addIceCandidate(new RTCIceCandidate(ev.candidate)); } catch {}
+          await this.addOrQueueIceCandidate(ev.candidate);
           break;
         case 'peer-left':
           this.stopCasting();
@@ -104,8 +109,8 @@ export class CastComponent implements OnInit, OnDestroy {
 
       this.stream.getVideoTracks()[0].onended = () => this.stopCasting();
 
-      if (this.pc) {
-        this.stream.getTracks().forEach(t => this.pc.addTrack(t, this.stream));
+      if (this.pendingOffer) {
+        await this.handleOffer(this.pendingOffer);
       }
 
       this.state = 'casting';
@@ -128,6 +133,7 @@ export class CastComponent implements OnInit, OnDestroy {
   }
 
   private async handleOffer(sdp: RTCSessionDescriptionInit): Promise<void> {
+    this.pc?.close();
     this.pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
 
     this.pc.onicecandidate = ({ candidate }) => {
@@ -139,9 +145,32 @@ export class CastComponent implements OnInit, OnDestroy {
     }
 
     await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    await this.flushPendingIceCandidates();
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
     this.signaling.sendAnswer(answer);
+    this.pendingOffer = undefined;
+  }
+
+  private async addOrQueueIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
+    if (!this.pc || !this.pc.remoteDescription) {
+      this.pendingIceCandidates.push(candidate);
+      return;
+    }
+
+    try {
+      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch {
+      this.error = 'The devices could not establish a media connection.';
+    }
+  }
+
+  private async flushPendingIceCandidates(): Promise<void> {
+    const candidates = [...this.pendingIceCandidates];
+    this.pendingIceCandidates = [];
+    for (const candidate of candidates) {
+      await this.addOrQueueIceCandidate(candidate);
+    }
   }
 
   switchMode(mode: CaptureMode): void {
@@ -157,6 +186,8 @@ export class CastComponent implements OnInit, OnDestroy {
   stopCasting(): void {
     this.stream?.getTracks().forEach(t => t.stop());
     this.pc?.close();
+    this.pendingOffer = undefined;
+    this.pendingIceCandidates = [];
     this.state = 'selecting';
   }
 

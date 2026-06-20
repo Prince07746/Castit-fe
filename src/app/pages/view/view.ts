@@ -21,6 +21,7 @@ export class ViewComponent implements OnInit, OnDestroy {
   error = '';
   private pc!: RTCPeerConnection;
   private sub!: Subscription;
+  private pendingIceCandidates: RTCIceCandidateInit[] = [];
 
   constructor(private signaling: SignalingService) {}
 
@@ -41,9 +42,10 @@ export class ViewComponent implements OnInit, OnDestroy {
           break;
         case 'answer':
           await this.pc.setRemoteDescription(new RTCSessionDescription(ev.sdp));
+          await this.flushPendingIceCandidates();
           break;
         case 'ice-candidate':
-          try { await this.pc.addIceCandidate(new RTCIceCandidate(ev.candidate)); } catch {}
+          await this.addOrQueueIceCandidate(ev.candidate);
           break;
         case 'peer-left':
           this.state = 'disconnected';
@@ -63,6 +65,10 @@ export class ViewComponent implements OnInit, OnDestroy {
 
   private async initPeerConnection(): Promise<void> {
     this.pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    this.pendingIceCandidates = [];
+    this.pc.addTransceiver('video', { direction: 'recvonly' });
+    this.pc.addTransceiver('audio', { direction: 'recvonly' });
+
     this.pc.onicecandidate = ({ candidate }) => {
       if (candidate) this.signaling.sendIceCandidate(candidate.toJSON());
     };
@@ -77,10 +83,33 @@ export class ViewComponent implements OnInit, OnDestroy {
       }, 50);
     };
     this.pc.onconnectionstatechange = () => {
-      if (this.pc.connectionState === 'failed' || this.pc.connectionState === 'closed') {
+      if (this.pc.connectionState === 'failed'
+        || this.pc.connectionState === 'closed'
+        || this.pc.connectionState === 'disconnected') {
         this.state = 'disconnected';
       }
     };
+  }
+
+  private async addOrQueueIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
+    if (!this.pc || !this.pc.remoteDescription) {
+      this.pendingIceCandidates.push(candidate);
+      return;
+    }
+
+    try {
+      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch {
+      this.error = 'The devices could not establish a media connection.';
+    }
+  }
+
+  private async flushPendingIceCandidates(): Promise<void> {
+    const candidates = [...this.pendingIceCandidates];
+    this.pendingIceCandidates = [];
+    for (const candidate of candidates) {
+      await this.addOrQueueIceCandidate(candidate);
+    }
   }
 
   reconnect(): void {

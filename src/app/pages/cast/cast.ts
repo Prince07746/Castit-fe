@@ -29,6 +29,10 @@ export class CastComponent implements OnInit, OnDestroy {
   constructor(private signaling: SignalingService) {}
 
   ngOnInit(): void {
+    if (!this.supportsScreenCapture && this.supportsCameraCapture) {
+      this.captureMode = 'camera';
+    }
+
     this.signaling.connect();
     this.sub = this.signaling.events$.subscribe(async ev => {
       switch (ev.type) {
@@ -65,15 +69,28 @@ export class CastComponent implements OnInit, OnDestroy {
   }
 
   setMode(mode: CaptureMode): void {
+    if (mode === 'screen' && !this.supportsScreenCapture) {
+      this.error = 'Screen sharing is not available in this browser. Use camera casting or open Castit in a supported desktop browser.';
+      return;
+    }
     this.captureMode = mode;
+    this.error = '';
   }
 
   async startCasting(): Promise<void> {
     this.error = '';
     try {
       if (this.captureMode === 'screen') {
+        if (!this.supportsScreenCapture) {
+          this.error = 'Screen sharing is not available in this browser. Use camera casting or open Castit in a supported desktop browser.';
+          return;
+        }
         this.stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
       } else {
+        if (!this.supportsCameraCapture) {
+          this.error = 'Camera access is not available in this browser.';
+          return;
+        }
         this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true });
       }
 
@@ -96,6 +113,18 @@ export class CastComponent implements OnInit, OnDestroy {
       this.error = err.message ?? 'Failed to capture';
       this.state = 'selecting';
     }
+  }
+
+  get supportsScreenCapture(): boolean {
+    return typeof navigator !== 'undefined'
+      && !!navigator.mediaDevices
+      && typeof navigator.mediaDevices.getDisplayMedia === 'function';
+  }
+
+  get supportsCameraCapture(): boolean {
+    return typeof navigator !== 'undefined'
+      && !!navigator.mediaDevices
+      && typeof navigator.mediaDevices.getUserMedia === 'function';
   }
 
   private async handleOffer(sdp: RTCSessionDescriptionInit): Promise<void> {

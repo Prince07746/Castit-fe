@@ -38,12 +38,20 @@
     @if (state === 'selecting') {
       <h1>Choose what to cast</h1>
       <div class="mode-select">
-        <button class="mode-btn" [class.active]="captureMode === 'screen'" (click)="setMode('screen')">
+        <button
+          class="mode-btn"
+          [class.active]="captureMode === 'screen'"
+          [disabled]="!supportsScreenCapture"
+          (click)="setMode('screen')"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="4" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
             <path d="M8 21h8M12 18v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           Screen
+          @if (!supportsScreenCapture) {
+            <span class="mode-unavailable">Unavailable</span>
+          }
         </button>
         <button class="mode-btn" [class.active]="captureMode === 'camera'" (click)="setMode('camera')">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -53,6 +61,9 @@
           Camera
         </button>
       </div>
+      @if (!supportsScreenCapture) {
+        <p class="capture-note">Screen sharing requires a supported desktop browser. Camera casting is available on this device.</p>
+      }
       <button class="btn btn-primary btn-lg" (click)="startCasting()">
         Start Casting
       </button>
